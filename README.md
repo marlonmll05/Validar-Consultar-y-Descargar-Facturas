@@ -12,11 +12,19 @@ La aplicación cuenta con dos opciones principales, accesibles desde la página 
 En esta sección, el usuario puede:
 
 -Consultar todas las facturas registradas según diferentes filtros.
+
 -Descargar las facturas de forma individual o masiva.
+
 -Visualizar detalles relevantes como:
+
 -Nombre del paciente.
+
 -Usuario que generó la factura.
+
 -CUV devuelto por la DIAN.
+
+-Añadir CUV manualmente en caso de que la factura haya sido validada localmente.
+
 -Acceso directo al documento de soporte de cada factura.
 
 Además, en el apartado del documento de soporte, el usuario puede seleccionar qué tipo de historia clínica desea descargar, según el caso:
