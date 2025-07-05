@@ -1,4 +1,4 @@
-# Validar, Consultar o Generar Soporte de Facturas
+# Validar, Consultar o Generar Facturas y Documentos de Soporte
 
 Aplicación diseñada exclusivamente para los centros de salud del departamento del Atlántico, Colombia.
 
