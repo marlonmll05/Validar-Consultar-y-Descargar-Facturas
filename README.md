@@ -90,6 +90,14 @@ Esta aplicación ha sido instalada y se encuentra actualmente en funcionamiento 
 - Hospital de Juan de Acosta
 - Hospital de Manatí
 - Hospital de Arenal
+- Hospital de Usiacurí
+- Hospital de Ponedera
+- ESE Unidad Local Salud de Suan
+- Hospital de Luruaco
+- Hospital de Sabanagrande
+- Hospital de Juan de Acosta
+- Hospital de Palmar de Varela
+- Hospital de Polonuevo
   
 ---
 
