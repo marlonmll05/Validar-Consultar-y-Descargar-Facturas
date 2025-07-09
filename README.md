@@ -98,6 +98,7 @@ Esta aplicación ha sido instalada y se encuentra actualmente en funcionamiento 
 - Hospital de Juan de Acosta
 - Hospital de Palmar de Varela
 - Hospital de Polonuevo
+- E.S.E Unidad Local de Suan
   
 ---
 
