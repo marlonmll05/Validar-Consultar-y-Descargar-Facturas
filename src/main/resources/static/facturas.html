@@ -34,7 +34,7 @@
     }
     
     .container {
-      max-width: 1200px;
+      max-width: 1500px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -200,7 +200,7 @@
     
     .button-group {
       display: flex;
-      gap: 10px;
+      gap: 5px;
       margin-top: 20px;
     }
     
@@ -217,6 +217,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      display: flex;
     }
     
     table {
@@ -291,7 +292,7 @@
 
     #toastContainer {
       position: fixed;
-      bottom: 20px;
+      top: 20px;
       right: 20px;
       display: flex;
       flex-direction: column; 
@@ -354,6 +355,22 @@
     top: 10px; 
     right: 10px; 
       }
+
+    .toast-progress-container {
+    width: 100%;
+    background-color: #eee;
+    height: 10px;
+    border-radius: 5px;
+    margin: 8px 0;
+    overflow: hidden;
+    }
+
+    .toast-progress-bar {
+        height: 100%;
+        background-color: #4caf50;
+        width: 0%;
+        transition: width 0.5s ease-in-out;
+    }
 
     .btn-cuv {
       background-color: #10b981;
@@ -424,7 +441,65 @@
       background-color: #f0f0f0;
       border: 1px solid #000000;
     }
-    
+
+    .checkbox-container {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--dark);
+      padding-left: 10px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    .switch input:checked + .slider {
+      background-color: #10b981;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(23px);
+    }
+
+    .formato-label {
+      white-space: nowrap;
+    }
+
     .btn-ver-doc{
       background-color: #10b981;
       color: white;
@@ -443,8 +518,6 @@
     .btn-ver-doc:active{
       transform: translateY(1px);
     }
-
-
     
     @keyframes slideIn {
       from {
@@ -543,7 +616,7 @@
         </div>
         
         <div class="button-group">
-          <button type="submit" class="button">
+          <button type="submit" class="button" id="subirboton">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -557,16 +630,25 @@
     <div id="accionesDiv" class="card" style="display:none;">
       <div class="actions-bar">
         <div class="format-select">
-          <label for="formatoSelect">Formato de descarga:</label>
+          <label class="formato-label" for="formatoSelect">Formato de<br> Descarga:</label>
           <select id="formatoSelect" class="select-format">
             <option value="txt">TXT</option>
             <option value="json">JSON</option>
             <option value="ambos">Ambos</option>
           </select>
+
+          <div class="checkbox-container">
+            <label for="incluirXML">Incluir XML</label>
+            <label class="switch">
+              <input type="checkbox" id="incluirXML" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
+
         
         <div class="button-group">
-          <button onclick="descargarSeleccionados()" class="button button-success">
+          <button id="descargarSeleccionadosBtn" onclick="descargarSeleccionados()" class="button button-success">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
@@ -604,25 +686,46 @@
           fechaHastaInput.value = today;
       });
 
-      function showToast(title, message, type = 'success', duration = 6000) {
+      function showToast(title, message, type = 'success', duration = 6000, showProgress = false) {
           const container = document.getElementById('toastContainer');
           const toast = document.createElement('div');
           toast.className = `toast ${type}`;
+          
           toast.innerHTML = `
-              <div class="toast-content">                  
+              <div class="toast-content">
                   <strong>${title}</strong>
                   <button class="close-toast" onclick="this.parentElement.parentElement.remove()">✖</button>
-                  <p>${message}</p>                 
+                  <p>${message}</p>
+                  ${showProgress ? `
+                  <div class="toast-progress-container">
+                      <div class="toast-progress-bar" style="width: 0%;"></div>
+                  </div>` : ''}
               </div>
           `;
+
           container.appendChild(toast);
-          setTimeout(() => {
-              if (toast.parentElement) {
-                  toast.classList.add('fadeOut');
-                  setTimeout(() => container.removeChild(toast), 300);
-              }
-          }, duration);
-      } 
+
+          if (!showProgress) {
+              setTimeout(() => {
+                  if (toast.parentElement) {
+                      toast.classList.add('fadeOut');
+                      setTimeout(() => {
+                          container.removeChild(toast);
+                      }, 300);
+                  }
+              }, duration);
+          }
+
+
+          return toast;
+      }
+
+      function actualizarToastProgreso(toast, porcentaje) {
+          const progressBar = toast.querySelector('.toast-progress-bar');
+          if (progressBar) {
+              progressBar.style.width = `${porcentaje}%`;
+          }
+      }
 
 
       function copiarAlPortapapeles(texto) {
@@ -736,7 +839,7 @@
                               ${headersHTML}
                               <td>
                                   <button class="btn-ver-doc">
-                                      Ver Documento
+                                      Ver<p>Documento
                                   </button>
                               </td>
                               <td class="cuv-cell" data-nfact="${row.Nfact}"></td>
@@ -746,6 +849,7 @@
                       body.innerHTML += filaHTML;
 
                   });
+
 
                   document.querySelectorAll('.btn-ver-doc').forEach(btn => {
                       btn.addEventListener('click', (e) => {
@@ -760,7 +864,6 @@
                           }
                       });
                   });
-
 
                   document.querySelectorAll('.cuv-cell').forEach(async cell => {
                       const fila = cell.closest('tr');
@@ -886,61 +989,104 @@
       }
 
       async function descargarSeleccionados() {
-          const tipo = document.getElementById('formatoSelect').value;
-          const seleccionados = [...document.querySelectorAll('.filaCheckbox')].filter(cb => cb.checked);
+          const boton = document.getElementById('descargarSeleccionadosBtn');
+          const textoOriginal = boton.innerHTML;
+          const boton2 = document.getElementById('subirboton');
+          const textoOriginal2 = boton2.innerHTML;
 
-          if (seleccionados.length === 0) {
-              showToast('Atención', "Selecciona al menos un documento.", 'error');
-              return;
-          }
+          boton.disabled = true;
+          boton.innerHTML = 'Descargando...';
+          boton.style.opacity = '0.6';
+          boton.style.cursor = 'not-allowed';
 
-          let directoryHandle;
+          boton2.disabled = true;
+          boton2.innerHTML = 'Descargando...';
+          boton2.style.opacity = '0.6';
+          boton2.style.cursor = 'not-allowed';
+
           try {
-              directoryHandle = await window.showDirectoryPicker();
-          } catch (e) {
-              showToast('Cancelado', 'Selección de carpeta cancelada.', 'error');
-              return;
-          }
+              const tipo = document.getElementById('formatoSelect').value;
+              const incluirXml = document.getElementById('incluirXML').checked;
+              const seleccionados = [...document.querySelectorAll('.filaCheckbox')].filter(cb => cb.checked);
+              
 
-          showToast('Descargando', `Procesando ${seleccionados.length} documento(s)...`, 'success');
-
-          const errores = [];
-
-          for (const cb of seleccionados) {
-              const row = cb.closest('tr');
-              const nfact = row.querySelector('td:nth-child(2)').textContent.trim();
-              const id = cb.value;
-
-              if (!nfact) {
-                  showToast('Error', `No se encontró Nfact para ID ${id}`, 'error');
-                  errores.push({ id, tipo, error: 'Nfact no encontrado' });
-                  continue;
+              if (seleccionados.length === 0) {
+                  showToast('Atención', "Selecciona al menos un documento.", 'error');
+                  return;
               }
 
-              const ripsError = await ejecutarRips(nfact);
-              if (ripsError) {
-                  showToast('Error', ripsError, 'error');
-                  errores.push({ id, tipo, error: ripsError });
-                  continue;
+              let directoryHandle;
+              try {
+                  directoryHandle = await window.showDirectoryPicker();
+                  const permiso = await directoryHandle.requestPermission({ mode: 'readwrite' });
+                  if (permiso !== 'granted') {
+                      showToast('Error', 'Permiso denegado para escribir en la carpeta seleccionada.', 'error');
+                      return;
+                  }
+              } catch (e) {
+                  showToast('Cancelado', 'Selección de carpeta cancelada.', 'error');
+                  return;
               }
 
-              const downloadResult = await descargarZip(id, tipo, directoryHandle);
-              if (downloadResult) {
-                  showToast('Error', downloadResult, 'error');
-                  errores.push({ id, tipo, error: downloadResult });
+              const toast = showToast('Procesando', `Descargando ${seleccionados.length} paquetes...`, 'success', 30000, true);
+              actualizarToastProgreso(toast, 0);
+
+              const errores = [];
+
+              for (let i = 0; i < seleccionados.length; i++) {
+                  const cb = seleccionados[i];
+                  const row = cb.closest('tr');
+                  const cuv = row.querySelector('.valor-cuv')?.textContent.trim();
+                  const nfact = row.querySelector('td:nth-child(2)').textContent.trim();
+                  const id = cb.value;
+
+                  if (!nfact) {
+                      showToast('Error', `No se encontró Nfact para ID ${id}`, 'error');
+                      errores.push({ id, tipo, error: 'Nfact no encontrado' });
+                      continue;
+                  }
+
+                  const ripsError = await ejecutarRips(nfact);
+                  if (ripsError) {
+                      showToast('Error', ripsError, 'error');
+                      errores.push({ id, tipo, error: ripsError });
+                      continue;
+                  }
+
+                  const downloadResult = await descargarZip(id, tipo, incluirXml, cuv, directoryHandle);
+                  if (downloadResult) {
+                      showToast('Error', downloadResult, 'error');
+                      errores.push({ id, tipo, error: downloadResult });
+                  }
+
+                  const progreso = Math.round(((i + 1) / seleccionados.length) * 100);
+                  actualizarToastProgreso(toast, progreso);
               }
-          }
 
+              document.querySelectorAll('.filaCheckbox').forEach(cb => cb.checked = false);
+              const selectAllCheckbox = document.getElementById('selectAll');
+              if (selectAllCheckbox) selectAllCheckbox.checked = false;
 
-          document.querySelectorAll('.filaCheckbox').forEach(cb => cb.checked = false);
-          const selectAllCheckbox = document.getElementById('selectAll');
-          if (selectAllCheckbox) selectAllCheckbox.checked = false;
+              setTimeout(() => {
+                  toast.classList.add('fadeOut');
+                  setTimeout(() => toast.remove(), 300);
+              }, 1000);
 
+              if (errores.length === 0) {
+                  showToast('Éxito', 'Todos los documentos fueron descargados exitosamente.', 'success');
+              } else {
+                  showToast('Completado con errores', `Se descargaron con éxito ${seleccionados.length - errores.length} de ${seleccionados.length} documentos.`, 'success');
+              }
+          } finally {
+              boton.disabled = false;
+              boton.innerHTML = textoOriginal;
+              boton.style.opacity = '1';
+              boton.style.cursor = 'pointer';
 
-          if (errores.length === 0) {
-              showToast('Éxito', 'Todos los documentos fueron descargados exitosamente.', 'success');
-          } else {
-              showToast('Completado con errores', `Se descargaron con éxito ${seleccionados.length - errores.length} de ${seleccionados.length} documentos.`, 'warning');
+              boton2.disabled = false;
+              boton2.innerHTML = textoOriginal2;
+              boton2.style.opacity = '1';
+              boton2.style.cursor = 'pointer';
           }
       }
 
@@ -1030,10 +1176,9 @@
           }
       }
 
-      async function descargarZip(id, tipo, directoryHandle) {
+      async function descargarZip(id, tipo, xml, cuv, directoryHandle) {
           const host = window.location.hostname;
-          const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}`;
-
+          const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}?cuv=${encodeURIComponent(cuv || '')}`; 
           try {
               const response = await fetch(url);
 
@@ -1086,7 +1231,7 @@
       document.getElementById('idTercero').addEventListener('change', async function() {
           const idTerceroKey = this.value;
           const selectContratos = document.getElementById('noContrato');
-          selectContratos.innerHTML = '<option value="">Seleccione un contrato</option>'; 
+          selectContratos.innerHTML = '<option value="">Seleccione un contrato</option>';
 
           if (idTerceroKey) {
               try {
@@ -1100,7 +1245,7 @@
                       selectContratos.appendChild(option);
                   });
               } catch (error) {
-                  showToast("Error", "Error al cargar contratos: " + error.message, 'error'); 
+                  showToast("Error", "Error al cargar contratos: " + error.message, 'error');
               }
           }
       });

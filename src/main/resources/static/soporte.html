@@ -97,6 +97,16 @@
             color: var(--dark);
         }
 
+        #resultados td:nth-last-child(3),
+        #resultados th:nth-last-child(3){
+            text-align: center;
+            width: 110px;
+            max-width: 110px;
+            word-wrap: break-word;     
+            white-space: normal;        
+            overflow-wrap: break-word;
+        }
+
         .filaCheckbox {
             transform: scale(1.25);
             cursor: pointer;
@@ -227,6 +237,8 @@
         }
 
 
+
+
     </style>
 </head>
 <body>
@@ -321,7 +333,10 @@
                     return;
                 }
 
-                const headers = Object.keys(data[0]);
+                const columnasOcultas = ['CantidadDoc'];
+
+                const headers = Object.keys(data[0]).filter(h => !columnasOcultas.includes(h));
+
                 head.innerHTML = '<tr><th></th>' + headers.map(h => `<th>${h}</th>`).join('') + '<th>Documento</th></tr>';
 
                 data.forEach(row => {
@@ -347,7 +362,7 @@
                 document.querySelectorAll('.btn-ver-docu').forEach(btn => {
                     btn.addEventListener('click', async () => {
                         const fila = btn.closest('tr');
-                        const celdaIdAdmision = fila?.querySelector('td:nth-child(2)');
+                        const celdaIdAdmision = fila?.querySelector('td:nth-child(9)');
                         const celdaNombreArchivo = fila?.querySelector('td:nth-last-child(2)');
 
                         const idAdmision = celdaIdAdmision?.textContent.trim();
@@ -563,7 +578,7 @@
 
                         const promesasLote = lote.map(async (checkbox) => {
                             const fila = checkbox.closest('tr');
-                            const celdaIdAdmision = fila?.querySelector('td:nth-child(2)');
+                            const celdaIdAdmision = fila?.querySelector('td:nth-child(9)');
                             const celdaNombreArchivo = fila?.querySelector('td:nth-last-child(2)');
 
                             const idAdmision = celdaIdAdmision?.textContent.trim();
@@ -620,7 +635,7 @@
                             const fallidos = resultados.filter(r => !r.success).length;
 
                             if (fallidos > 0) {
-                                showToast('Lote completado', `Lote ${loteActual}: ${exitosos} exitosos, ${fallidos} fallidos`, 'warning');
+                                showToast('Lote completado', `Lote ${loteActual}: ${exitosos} exitosos, ${fallidos} fallidos`, 'error');
                             } else {
                                 showToast('Lote completado', `Lote ${loteActual}: ${exitosos} archivos descargados`, 'success');
                             }

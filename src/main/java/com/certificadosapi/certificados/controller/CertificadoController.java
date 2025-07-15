@@ -856,10 +856,12 @@ public class CertificadoController {
         }
     }
 
-    @GetMapping("/generarzip/{idMovDoc}/{tipoArchivo}")
+    @GetMapping("/generarzip/{idMovDoc}/{tipoArchivo}/{incluirXml}")
     public ResponseEntity<ByteArrayResource> generarzip(
             @PathVariable int idMovDoc,
-            @PathVariable String tipoArchivo) {
+            @PathVariable String tipoArchivo,
+            @PathVariable boolean incluirXml,
+            @RequestParam(required = false) String cuv) { 
 
         
         if (!tipoArchivo.equalsIgnoreCase("json") &&
@@ -906,23 +908,24 @@ public class CertificadoController {
             try (ZipOutputStream zos = new ZipOutputStream(baos)) {
                 
                 String folderName = "Fac_" + prefijo + numdoc + "/";
-
-                ResponseEntity<byte[]> xmlResponse = exportDocXml(idMovDoc); 
-                if (xmlResponse.getStatusCode() == HttpStatus.OK && xmlResponse.getBody() != null && xmlResponse.getBody().length > 0) {
-                    ZipEntry xmlEntry = new ZipEntry(folderName + "ad0" + IdEmpresaGrupo + "000" + yearSuffix + formattedNumdoc + ".xml");
-                    zos.putNextEntry(xmlEntry);
-                    zos.write(xmlResponse.getBody());
-                    zos.closeEntry();
-                } else {
-                    String errorMessage = "No se pudo obtener el XML.";
-                    if (xmlResponse.getBody() != null && xmlResponse.getBody().length > 0) {
-                        errorMessage = new String(xmlResponse.getBody(), StandardCharsets.UTF_8);
-                    }
-
-                    return ResponseEntity.status(xmlResponse.getStatusCode())
+    
+                if (incluirXml) {
+                    ResponseEntity<byte[]> xmlResponse = exportDocXml(idMovDoc);
+                    if (xmlResponse.getStatusCode() == HttpStatus.OK && xmlResponse.getBody() != null && xmlResponse.getBody().length > 0) {
+                        ZipEntry xmlEntry = new ZipEntry(folderName + "ad0" + IdEmpresaGrupo + "000" + yearSuffix + formattedNumdoc + ".xml");
+                        zos.putNextEntry(xmlEntry);
+                        zos.write(xmlResponse.getBody());
+                        zos.closeEntry();
+                    } else {
+                        String errorMessage = "No se pudo obtener el XML.";
+                        if (xmlResponse.getBody() != null && xmlResponse.getBody().length > 0) {
+                            errorMessage = new String(xmlResponse.getBody(), StandardCharsets.UTF_8);
+                        }
+                        return ResponseEntity.status(xmlResponse.getStatusCode())
                                 .body(new ByteArrayResource(errorMessage.getBytes()));
                     }
-    
+                }
+
                 boolean jsonRequired = "json".equals(tipoArchivo) || "ambos".equals(tipoArchivo);
                 if (jsonRequired) {
                     ResponseEntity<byte[]> jsonResponse = generarjson(idMovDoc);
@@ -950,6 +953,16 @@ public class CertificadoController {
                         System.out.println("No hay datos para generar archivos TXT para IdMovDoc: " + idMovDoc);
                     }
                 }
+
+                if (cuv != null && !cuv.isBlank()) {
+                    
+                    String nombreCuv = folderName + "CUV_" + prefijo + numdoc + ".txt";
+                    ZipEntry zipEntry = new ZipEntry(nombreCuv);
+                    zos.putNextEntry(zipEntry);
+                    String contenido = cuv;
+                    zos.write(contenido.getBytes(StandardCharsets.UTF_8));
+                    zos.closeEntry();
+                }
             }
     
             ByteArrayResource resource = new ByteArrayResource(baos.toByteArray());
@@ -966,7 +979,6 @@ public class CertificadoController {
         }
     }
 }
-
 
 
 

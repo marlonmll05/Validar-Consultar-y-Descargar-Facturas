@@ -177,7 +177,6 @@ public class ValidadorController {
                 try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setString(1, "-1"); // @Ips
                     
-                    // Manejar fechas correctamente
                     if (fechaDesde != null) {
                         pstmt.setDate(2, Date.valueOf(fechaDesde)); // @Fecha_Ini
                     } else {
@@ -192,7 +191,6 @@ public class ValidadorController {
                     
                     pstmt.setString(4, "-1"); // @IdUsuario
                     
-
                     if (idTercero != null && !idTercero.trim().isEmpty()) {
                         try {
                             pstmt.setInt(5, Integer.parseInt(idTercero)); // @IdTerceroKey
@@ -203,7 +201,6 @@ public class ValidadorController {
                         pstmt.setInt(5, -1);
                     }
                     
-
                     if (noContrato != null && !noContrato.trim().isEmpty()) {
                         pstmt.setString(6, noContrato); 
                     } else {
@@ -256,8 +253,6 @@ public class ValidadorController {
         }
     }
 
-
-
     @GetMapping("/nombrexml/{idMovDoc}")
     public ResponseEntity<String> obtenerNombreXml(@PathVariable int idMovDoc) {
         String numdoc = "";
@@ -274,7 +269,6 @@ public class ValidadorController {
             );
 
             conn = DriverManager.getConnection(connectionUrl);
-
 
             String docQuery = "SELECT Prefijo, Numdoc FROM MovimientoDocumentos WHERE IdMovDoc = ?";
             try (PreparedStatement stmt = conn.prepareStatement(docQuery)) {
@@ -295,7 +289,6 @@ public class ValidadorController {
             }
 
             String formattedNumdoc = String.format("%08d", Integer.parseInt(numdoc));
-
 
             String xmlFileName = "ad0" + IdEmpresaGrupo + "000" + yearSuffix + formattedNumdoc + ".xml";
 

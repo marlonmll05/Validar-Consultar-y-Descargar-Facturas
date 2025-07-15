@@ -578,10 +578,10 @@ public class ApisqlController {
     private Object parseFechaConHoraNull(Object valor) {
         if (valor instanceof String str) {
             if (str.isBlank()) {
-                return ""; // campo vacío explícito
+                return "";
             }
             if ("null".equalsIgnoreCase(str)) {
-                return null; // explícito "null" como texto
+                return null;
             }
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -606,7 +606,7 @@ public class ApisqlController {
 
         if (value instanceof String str) {
             if (str.isBlank()) {
-                return ""; // se permite cadena vacía explícitamente
+                return "";
             }
             throw new IllegalArgumentException("❌ No se acepta String como valor para BigDecimal: " + str);
         }
@@ -629,12 +629,9 @@ public class ApisqlController {
 
         String str = valor.toString();
 
-        // Si es el string "null" (ignorando mayúsculas), retorna null
         if ("null".equalsIgnoreCase(str)) {
             return null;
         }
-
-        // ✅ Si es "", se conserva como vacío (ya no se convierte a null)
 
         if (str.length() > maxLength) {
             throw new IllegalArgumentException("❌ String excede longitud máxima (" + maxLength + "): " + str);
@@ -645,13 +642,13 @@ public class ApisqlController {
 
     private Object parseIntegerNull(Object valor) {
         if (valor == null) {
-            return null; // Se permite null real
+            return null;
         }
 
         String str = valor.toString().trim();
 
         if (str.isEmpty() || "null".equalsIgnoreCase(str)) {
-            return null; // ⚠️ Ya no devolvemos "" → mejor retornar null
+            return null;
         }
 
         try {
@@ -676,7 +673,7 @@ public class ApisqlController {
 
         if (valor instanceof String str) {
             if (str.isBlank()) {
-                return ""; // campo vacío (solo espacios)
+                return "";
             }
             if ("null".equalsIgnoreCase(str)) {
                 throw new IllegalArgumentException("❌ Valor 'null' como texto no es válido");
@@ -700,7 +697,7 @@ public class ApisqlController {
 
         if (valor instanceof String str) {
             if (str.isBlank()) {
-                return ""; // campo vacío (solo espacios)
+                return "";
             }
             if ("null".equalsIgnoreCase(str)) {
                 throw new IllegalArgumentException("❌ Valor 'null' como texto no es válido");
@@ -724,7 +721,7 @@ public class ApisqlController {
 
         if (value instanceof String str) {
             if (str.isBlank()) {
-                return ""; // se permite cadena vacía
+                return ""; 
             }
             if ("null".equalsIgnoreCase(str)) {
                 throw new IllegalArgumentException("❌ Texto 'null' no permitido como valor para BigDecimal");
@@ -768,7 +765,7 @@ public class ApisqlController {
 
         if (valor instanceof String str) {
             if (str.isBlank()) {
-                return ""; // cadena vacía permitida explícitamente
+                return ""; 
             }
             throw new IllegalArgumentException("❌ No se permite String como valor para Integer: \"" + str + "\"");
         }

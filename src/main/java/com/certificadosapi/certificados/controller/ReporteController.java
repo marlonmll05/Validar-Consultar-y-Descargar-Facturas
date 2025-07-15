@@ -16,6 +16,9 @@ import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import java.sql.*;
+
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinReg;
@@ -64,34 +69,33 @@ public class ReporteController {
             return ResponseEntity.badRequest().body("El nombre del soporte es requerido.");
         }
 
-        String reportUrl;
+        String urlBase = null;
         try{
             String servidor = getServerFromRegistry();
             String connectionUrl = String.format("jdbc:sqlserver://%s;databaseName=IPSoft100_ST;user=ConexionApi;password=ApiConexion.77;encrypt=true;trustServerCertificate=true;sslProtocol=TLSv1;",
             servidor);
         
-            String urlBase = null;
+
             try (Connection conn = DriverManager.getConnection(connectionUrl)){
                 String sql = "SELECT ValorParametro FROM ParametrosServidor WHERE NomParametro = 'URLReportServerWS'";
                 try (PreparedStatement stmt = conn.prepareStatement(sql);
-                    ResultSet rs = stmt.executeQuery()) {
+                     ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         urlBase = rs.getString("ValorParametro");
-                    }
+                    } else {
+                        return ResponseEntity.internalServerError().body("No se encontró la URL del servidor de reportes.");
+                    }               
                 }
             }
-
-        if (urlBase == null || urlBase.trim().isEmpty()) {
-            return ResponseEntity.internalServerError().body("No se encontró la URL del servidor de reportes.");
-        }
-
-        reportUrl = urlBase + "?" + nombreSoporte + "&IdAdmision=" + idAdmision + "&rs:Format=PDF";
-        System.out.println("URL: " + reportUrl);
-
+            
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al obtener la URL del servidor: " + e.getMessage());
         }
 
+
+        if (urlBase == null || urlBase.trim().isEmpty()) {
+            return ResponseEntity.internalServerError().body("No se encontró la URL del servidor de reportes.");
+        }
 
         String dominio = "servergihos";
         String usuario = "Consulta";
@@ -118,49 +122,74 @@ public class ReporteController {
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry)
                 .setDefaultRequestConfig(requestConfig);
 
+
+
         try (CloseableHttpClient httpClient = clientBuilder.build()) {
 
-            HttpGet request = new HttpGet(reportUrl);
+            String[] ids = idAdmision.split(",");
+            PDFMergerUtility merger = new PDFMergerUtility();
+            ByteArrayOutputStream mergedOutput = new ByteArrayOutputStream();
+            merger.setDestinationStream(mergedOutput);
 
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                int statusCode = response.getStatusLine().getStatusCode();
+            boolean hayAlMenosUnPdf = false;
 
-                if (statusCode == 200) {
-                    byte[] pdfBytes = EntityUtils.toByteArray(response.getEntity());
 
-                    ByteArrayResource resource = new ByteArrayResource(pdfBytes);
-                    return ResponseEntity.ok()
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + nombreArchivo + ".pdf")
-                            .contentType(MediaType.APPLICATION_PDF)
-                            .body(resource);
+            for (String id : ids) {
+                id = id.trim();
+                
+                String reportUrl = urlBase + "?" + nombreSoporte + "&IdAdmision=" + id + "&rs:Format=PDF";
+                System.out.println("URL: " + reportUrl);
 
-                } else {
-                    String errorContent = "";
-                    if (response.getEntity() != null) {
-                        try {
-                            errorContent = EntityUtils.toString(response.getEntity(), "UTF-8");
-                        } catch (Exception e) {
-                            errorContent = "No se pudo leer el contenido del error: " + e.getMessage();
+                HttpGet request = new HttpGet(reportUrl);
+
+                try (CloseableHttpResponse response = httpClient.execute(request)) {
+                    int statusCode = response.getStatusLine().getStatusCode();
+
+                    if (statusCode == 200) {
+                        byte[] pdfBytes = EntityUtils.toByteArray(response.getEntity());
+                        merger.addSource(new ByteArrayInputStream(pdfBytes));
+                        hayAlMenosUnPdf = true;
+
+                    } else {
+                        String errorContent = "";
+                        if (response.getEntity() != null) {
+                            try {
+                                errorContent = EntityUtils.toString(response.getEntity(), "UTF-8");
+                            } catch (Exception e) {
+                                errorContent = "No se pudo leer el contenido del error: " + e.getMessage();
+                            }
                         }
+
+                        System.err.println("ERROR REPORTING SERVICES:");
+                        System.err.println("Status Code: " + statusCode);
+                        System.err.println("Reason Phrase: " + response.getStatusLine().getReasonPhrase());
+                        System.err.println("URL solicitada: " + reportUrl);
+                        System.err.println("Contenido del error: " + errorContent);
+
+                        return ResponseEntity.status(statusCode)
+                                .body("Error al descargar el informe. Código: " + statusCode +
+                                        " - " + response.getStatusLine().getReasonPhrase() +
+                                        "\nDetalle: " + errorContent);
                     }
-
-                    System.err.println("ERROR REPORTING SERVICES:");
-                    System.err.println("Status Code: " + statusCode);
-                    System.err.println("Reason Phrase: " + response.getStatusLine().getReasonPhrase());
-                    System.err.println("URL solicitada: " + reportUrl);
-                    System.err.println("Contenido del error: " + errorContent);
-
-                    return ResponseEntity.status(statusCode)
-                            .body("Error al descargar el informe. Código: " + statusCode +
-                                    " - " + response.getStatusLine().getReasonPhrase() +
-                                    "\nDetalle: " + errorContent);
                 }
-
             }
+            
+            if(!hayAlMenosUnPdf) {
+                return ResponseEntity.badRequest().body("No se pudo procesar ninguna admisión.");
+            }
+
+            merger.mergeDocuments(null);
+
+            ByteArrayResource resource = new ByteArrayResource(mergedOutput.toByteArray());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + nombreArchivo + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(resource);
+
 
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
-                    .body("Excepción al conectar: " + e.getMessage());
+                    .body("Excepción al conectar o procesar los PDFs: " + e.getMessage());
         }
     }
     

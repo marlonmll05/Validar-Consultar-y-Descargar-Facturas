@@ -235,7 +235,7 @@
       
       .actions-bar {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
@@ -296,7 +296,7 @@
 
       #toastContainer {
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
         display: flex;
         flex-direction: column; 
@@ -367,6 +367,23 @@
         font-size: 13px;
         color: var(--gray);
       }
+
+    .toast-progress-container {
+        width: 100%;
+        background-color: #eee;
+        height: 10px;
+        border-radius: 5px;
+        margin: 8px 0;
+        overflow: hidden;
+    }
+
+    .toast-progress-bar {
+        height: 100%;
+        background-color: #4caf50;
+        width: 0%;
+        transition: width 0.5s ease-in-out;
+    }
+
 
       .lista-enumerada {
           margin: 0;
@@ -593,7 +610,7 @@
       }
 
       .fila-verde {
-        background-color: #c8e6c9; /* Color verde claro */
+        background-color: #c8e6c9;
       }
 
       
@@ -701,6 +718,60 @@
         padding: 0;
         text-decoration: underline;
         user-select: none;
+    }
+
+    .checkbox-container {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--dark);
+      padding-left: 10px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 45px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    .switch input:checked + .slider {
+      background-color: #10b981;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(23px);
     }
         
 
@@ -826,13 +897,25 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <button type="submit" class="button">Buscar</button>
+                    <button type="submit" class="button" id="botonBuscar">Buscar</button>
                 </div>
             </form>
         </div>
+        
 
         <div id="accionesDiv" class="card" style="display:none;">
             <div class="actions-bar">
+
+                <div class="checkbox-container">
+                    <label for="incluirXML">Incluir XML</label>
+                        <label class="switch">
+                        <input type="checkbox" id="incluirXML" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+
+
                 <div class="button-group">
                     <button id="DescargarPaquetesBtn" onclick="DescargarPaquetes()" class="button button-success" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -851,8 +934,7 @@
                     <button onclick="seleccionarPorEstado('enviados')" class="button button-secondary button-small">Seleccionar enviados</button>
                     <button onclick="seleccionarPorEstado('pendientes')" class="button button-secondary button-small">Seleccionar pendientes</button>
                     <button onclick="seleccionarPorEstado('ninguno')" class="button button-secondary button-small">Deseleccionar todo</button>
-                                            
-                    
+                                    
                 </div>
             </div>
             <div class="table-container">
@@ -924,7 +1006,6 @@
                 const cuvValue = cuvCell ? cuvCell.textContent.trim() : '';
                 const tieneCUV = cuvValue !== '' && cuvValue !== null && cuvValue !== undefined;
 
-                // Ejecutar Rips
                 const ejecutarRipsUrl = `https://${host}:9876/api/sql/ejecutarRips?Nfact=${nFact}`;
                 const ripsResp = await fetch(ejecutarRipsUrl);
                 if (!ripsResp.ok) {
@@ -945,7 +1026,6 @@
                     return;
                 }
 
-                // Obtener JSON
                 const url = `https://${host}:9876/certificados/generarjson/${idMovDoc}`;
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -1032,17 +1112,17 @@
                 overlay.appendChild(modal);
                 document.body.appendChild(overlay);
 
-                // VARIABLES DE LIMPIEZA 
+
                 let overlayClickHandler, modalClickHandler, handleEscape;
                 let searchInputHandler, toggleEditHandler, guardarCambiosHandler, cancelarCambiosHandler;
                 let prevMatchHandler, nextMatchHandler, searchKeydownHandler;
 
-                // Variables para el manejo del modo de edición
+
                 let isEditMode = false;
                 let originalData = structuredClone(data);
                 let currentData = structuredClone(data);
 
-                // Elementos del DOM
+
                 const jsonViewer = document.getElementById('jsonViewer');
                 const toggleEditButton = document.getElementById('toggleEditMode');
                 const editModeButtons = document.getElementById('editModeButtons');
@@ -1053,15 +1133,12 @@
                 const prevMatchButton = document.getElementById('prevMatch');
                 const nextMatchButton = document.getElementById('nextMatch');
 
-                // Variables para la búsqueda
                 let matches = [];
                 let currentMatchIndex = -1;
                 let originalContent = pretty;
 
-                // ESTADO DE COLAPSO
                 let collapsedState = new Map();
 
-                // FUNCIÓN DE LIMPIEZA COMPLETA
                 function limpiarMemoria() {
                     console.log('🧹 Iniciando limpieza de memoria...');
                     
@@ -1907,17 +1984,24 @@
                     case 'todos':
                         checkbox.checked = true;
                         totalSeleccionadas++;
+                        fila.style.display = '';
                         break;
                     case 'pendientes':
-                        checkbox.checked = estado === 'pendiente';
-                        if (checkbox.checked) totalSeleccionadas++;
+                        const esPendiente = estado === 'pendiente';
+                        checkbox.checked = esPendiente;
+                        fila.style.display = esPendiente ? '' : 'none';
+                        if (esPendiente) totalSeleccionadas++;
                         break;
+
                     case 'enviados':
-                        checkbox.checked = estado === 'enviado';
-                        if (checkbox.checked) totalSeleccionadas++;
+                        const esEnviado = estado === 'enviado';
+                        checkbox.checked = esEnviado;
+                        fila.style.display = esEnviado ? '' : 'none';
+                        if (esEnviado) totalSeleccionadas++;
                         break;
                     case 'ninguno':
                         checkbox.checked = false;
+                        fila.style.display = '';
                         break;
                 }
             });
@@ -2113,6 +2197,28 @@
 
     
         async function enviarPaquetes() {
+            const boton = document.getElementById('enviarPaquetesBtn');
+            const textoOriginal = boton.innerHTML;
+            const boton2 = document.getElementById('botonBuscar');
+            const textoOriginal2 = boton2.innerHTML;
+
+            const boton3 = document.getElementById('DescargarPaquetesBtn')
+
+            boton.disabled = true;
+            boton.innerHTML = 'Enviando...';
+            boton.style.opacity = '0.6';
+            boton.style.cursor = 'not-allowed';
+
+            boton2.disabled = true;
+            boton2.style.opacity = '0.6';
+            boton2.style.cursor = 'not-allowed';
+
+            boton3.disabled = true;
+            boton3.style.opacity = '0.6';
+            boton3.style.cursor = 'not-allowed';
+
+
+
             try {
                 const checkboxes = document.querySelectorAll('.filaCheckbox:checked');
 
@@ -2121,7 +2227,8 @@
                     return;
                 }
 
-                showToast('Procesando', `Enviando ${checkboxes.length} paquetes...`, 'success');
+                toast = showToast('Procesando', `Enviando ${checkboxes.length} paquetes...`, 'success', 30000, true);
+                actualizarToastProgreso(toast, 0)
 
                 const documentosSeleccionados = Array.from(checkboxes).map(cb => {
                     const fila = cb.closest('tr');
@@ -2179,6 +2286,9 @@
 
                         const xmlText = await xmlResponse.text();
 
+                        const progreso = Math.round(((documentosSeleccionados.indexOf(doc) + 1) / documentosSeleccionados.length) * 100);
+                        actualizarToastProgreso(toast, progreso);
+                       
                         const payload = {
                             rips: jsonData,
                             xmlFevFile: xmlText
@@ -2194,6 +2304,8 @@
                         });
 
                         const responseData = await response.json();
+
+
 
                         if (response.ok && responseData.ResultState === true) {
                 
@@ -2300,53 +2412,68 @@
                                 }
                                 const exitoso = await actualizarSoloEstado(nFact, idEstadoValidacion);
 
+                                if (responseData.error) {
+                                    const mensajeError = responseData.error;
 
+                                    resultadoDiv.textContent = mensajeError;
 
-                                const mensajes = errores.map(error =>
-                                    `${error.Clase} \n ${error.Codigo} \n ${error.Descripcion}`
-                                ).join('\n\n');
-
-                                const observacionesYFuente = errores.map(error =>
-                                    `${error.Observaciones} \n  ${error.PathFuente} \n Fuente: ${error.Fuente}`
-                                ).join('\n\n');
-
-                                if (mensajes.length > 100) {
-                                    resultadoDiv.innerHTML = `
-                                        <div class="expandable">
-                                            <button class="toggle-button" onclick="toggleExpand(this)">
-                                                <span class="arrow">▶</span>
-                                            </button>
-                                            <div class="expand-content">
-                                                <ol class="lista-enumerada">
-                                                    ${mensajes.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
-                                                </ol>
-                                            </div>
-                                        </div>`;
-                                } else {
-                                    resultadoDiv.textContent = mensajes;
-                                }
-
-                                if (observacionesYFuente.length > 100) {
-                                    observacionesTd.innerHTML = `
-                                        <div class="expandable">
-                                            <button class="toggle-button" onclick="toggleExpand(this)">
-                                                <span class="arrow">▶</span>
-                                            </button>
-                                            <div class="expand-content">
-                                                <ol class="lista-enumerada">
-                                                    ${observacionesYFuente.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
-                                                </ol>
-                                            </div>
-                                        </div>`;
-                                } else {
-                                    observacionesTd.textContent = observacionesYFuente;
-                                }
-
-                                if (!cuvAgregado) {
                                     showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
                                 }
 
-                                doc.fila.classList.add('error-row');
+                                else if (responseData.ResultadosValidacion && Array.isArray(responseData.ResultadosValidacion)) {
+
+                                    const errores = responseData.ResultadosValidacion;
+
+                                    const mensajes = errores.map(error =>
+                                        `${error.Clase} \n ${error.Codigo} \n ${error.Descripcion}`
+                                    ).join('\n\n');
+
+                                    const observacionesYFuente = errores.map(error =>
+                                        `${error.Observaciones} \n  ${error.PathFuente} \n Fuente: ${error.Fuente}`
+                                    ).join('\n\n');
+
+                                    if (mensajes.length > 100) {
+                                        resultadoDiv.innerHTML = `
+                                            <div class="expandable">
+                                                <button class="toggle-button" onclick="toggleExpand(this)">
+                                                    <span class="arrow">▶</span>
+                                                </button>
+                                                <div class="expand-content">
+                                                    <ol class="lista-enumerada">
+                                                        ${mensajes.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
+                                                    </ol>
+                                                </div>
+                                            </div>`;
+                                    } else {
+                                        resultadoDiv.textContent = mensajes;
+                                    }
+
+                                    if (observacionesYFuente.length > 100) {
+                                        observacionesTd.innerHTML = `
+                                            <div class="expandable">
+                                                <button class="toggle-button" onclick="toggleExpand(this)">
+                                                    <span class="arrow">▶</span>
+                                                </button>
+                                                <div class="expand-content">
+                                                    <ol class="lista-enumerada">
+                                                        ${observacionesYFuente.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
+                                                    </ol>
+                                                </div>
+                                            </div>`;
+                                    } else {
+                                        observacionesTd.textContent = observacionesYFuente;
+                                    }
+
+                                    showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
+
+                                } else {
+
+                                    resultadoDiv.textContent = 'Error desconocido - revisar logs';
+                                    observacionesTd.textContent = 'Estructura de respuesta no reconocida';
+                                    showToast('Error', `El paquete ${nFact} tuvo un error desconocido`, 'error');
+                                }
+
+                                    doc.fila.classList.add('error-row');
                             }
                         }
                     } catch (error) {
@@ -2356,6 +2483,8 @@
                     }
                 }
 
+                
+
                 checkboxes.forEach(cb => cb.checked = false);
                 document.getElementById('selectAll').checked = false;
                 verificarCheckboxes();
@@ -2364,20 +2493,42 @@
             } catch (error) {
                 console.error("Error general al enviar paquetes:", error);
                 showToast('Error', `No se pudieron enviar los paquetes: ${error.message}`, 'error');
+            } finally {
+                boton.innerHTML = textoOriginal;
+                boton.disabled = true;
+                boton.style.opacity = '1';
+                boton.style.cursor = 'pointer';
+
+                boton2.disabled = false;
+                boton2.style.opacity = '1';
+                boton2.style.cursor = 'pointer';
+
+                boton3.disabled = true;
+                boton3.style.opacity = '1';
+                boton3.style.cursor = 'pointer';
+
+                setTimeout(() => {
+                    toast.classList.add('fadeOut');
+                    setTimeout(() => toast.remove(), 300);
+                }, 1000);
             }
         }
         
         async function enviarPaquete(idMovDoc, buttonElement) {
             const host = window.location.hostname;
             const token = sessionStorage.getItem('token');
+            const botonBuscar = document.getElementById("botonBuscar");
 
             const originalHTML = buttonElement.innerHTML;
             buttonElement.disabled = true;
-            buttonElement.innerHTML = 'Procesando...';
+            buttonElement.innerHTML = 'Enviando...';
             buttonElement.style.opacity = '0.6';
             buttonElement.style.cursor = 'not-allowed';
 
-            showToast('Procesando', `Enviando paquete...`, 'success');
+            botonBuscar.disabled = true;
+            botonBuscar.style.opacity = '0.6';
+            botonBuscar.style.cursor = 'not-allowed';
+
             
             const fila = buttonElement.closest('tr');
             const resultadoDiv = fila.querySelector('td:nth-last-child(5)');
@@ -2387,23 +2538,39 @@
             const logsButton = fila.querySelector('.descargar-logs-btn');
 
             try {
+
+                const toast = showToast('Procesando', `Preparando paquete...`, 'success', 30000, true);
+                actualizarToastProgreso(toast, 0);
+
                 const ejecutarRipsUrl = await fetch(`https://${host}:9876/api/sql/ejecutarRips?Nfact=${nFact}`);
                 if (!ejecutarRipsUrl.ok) {
                     const errorText = await ejecutarRipsUrl.text();
                     resultadoDiv.textContent = `Error al ejecutar Rips: ${errorText}`;
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
                     showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
                     fila.classList.add('error-row');
                     return;
                 }
+
+                actualizarToastProgreso(toast, 33);
 
                 const jsonResponse = await fetch(`https://${host}:9876/certificados/generarjson/${idMovDoc}`);
                 if (!jsonResponse.ok) {
                     const errorText = await jsonResponse.text();
                     resultadoDiv.textContent = `Error al obtener JSON: ${errorText}`;
                     fila.classList.add('error-row');
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
                     showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
                     return;
                 }
+
+                actualizarToastProgreso(toast, 66);
 
                 const jsonData = await jsonResponse.json();
 
@@ -2412,9 +2579,21 @@
                     const errorText = await xmlResponse.text();
                     resultadoDiv.textContent = `Error al obtener XML: ${errorText}`;
                     fila.classList.add('error-row');
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
                     showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
                     return;
                 }
+
+                actualizarToastProgreso(toast, 100);
+                setTimeout(() => {
+                  toast.classList.add('fadeOut');
+                  setTimeout(() => toast.remove(), 300);
+                }, 1000);
+
+                showToast('Procesando', `Enviando paquete...`, 'success');
 
                 const xmlText = await xmlResponse.text();
 
@@ -2530,54 +2709,71 @@
 
                         const exitoso = await actualizarSoloEstado(nFact, idEstadoValidacion);
                         
+                        if (responseData.error) {
+                            const mensajeError = responseData.error;
+                            
+                            resultadoDiv.textContent = mensajeError;
+                            
+                            showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
+                            
+                        } else if (responseData.ResultadosValidacion && Array.isArray(responseData.ResultadosValidacion)) {
+                            const errores = responseData.ResultadosValidacion;
+                            
+                            const mensajes = errores.map(error =>
+                                `${error.Clase} \n ${error.Codigo} \n ${error.Descripcion}`
+                            ).join('\n\n');
 
-                        const mensajes = errores.map(error =>
-                            `${error.Clase} \n ${error.Codigo} \n ${error.Descripcion}`
-                        ).join('\n\n');
+                            const observacionesYFuente = errores.map(error =>
+                                `${error.Observaciones} \n  ${error.PathFuente} \n Fuente: ${error.Fuente}`
+                            ).join('\n\n');
 
-                        const observacionesYFuente = errores.map(error =>
-                            `${error.Observaciones} \n  ${error.PathFuente} \n Fuente: ${error.Fuente}`
-                        ).join('\n\n');
+                            if (mensajes.length > 100) {
+                                resultadoDiv.innerHTML = `
+                                    <div class="expandable">
+                                        <button class="toggle-button" onclick="toggleExpand(this)">
+                                            <span class="arrow">▶</span>
+                                        </button>
+                                        <div class="expand-content">
+                                            <ol class="lista-enumerada">
+                                                ${mensajes.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
+                                            </ol>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                resultadoDiv.textContent = mensajes;
+                            }
 
-                        if (mensajes.length > 100) {
-                            resultadoDiv.innerHTML = `
-                                <div class="expandable">
-                                    <button class="toggle-button" onclick="toggleExpand(this)">
-                                        <span class="arrow">▶</span>
-                                    </button>
-                                    <div class="expand-content">
-                                        <ol class="lista-enumerada">
-                                            ${mensajes.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
-                                        </ol>
-                                    </div>
-                                </div>`;
-                        } else {
-                            resultadoDiv.textContent = mensajes;
+                            if (observacionesYFuente.length > 100) {
+                                observacionesTd.innerHTML = `
+                                    <div class="expandable">
+                                        <button class="toggle-button" onclick="toggleExpand(this)">
+                                            <span class="arrow">▶</span>
+                                        </button>
+                                        <div class="expand-content">
+                                            <ol class="lista-enumerada">
+                                                ${observacionesYFuente.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
+                                            </ol>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                observacionesTd.textContent = observacionesYFuente;
+                            }
+
+                            showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
+
+                    } else {
+                            resultadoDiv.textContent = 'Error desconocido - revisar logs';
+                            observacionesTd.textContent = 'Estructura de respuesta no reconocida';
+                            showToast('Error', `El paquete ${nFact} tuvo un error desconocido`, 'error');
                         }
 
-                        if (observacionesYFuente.length > 100) {
-                            observacionesTd.innerHTML = `
-                                <div class="expandable">
-                                    <button class="toggle-button" onclick="toggleExpand(this)">
-                                        <span class="arrow">▶</span>
-                                    </button>
-                                    <div class="expand-content">
-                                        <ol class="lista-enumerada">
-                                            ${observacionesYFuente.split('\n\n').map(item => `<li>${item.replace(/\n/g, '<br>')}</li>`).join('')}
-                                        </ol>
-                                    </div>
-                                </div>`;
-                        } else {
-                            observacionesTd.textContent = observacionesYFuente;
-                        }
-
-                        showToast('Error', `El paquete ${nFact} fue rechazado`, 'error');
                         fila.classList.add('error-row');
                     }
                 }
 
             } catch (error) {
                 console.error('Error al enviar paquete:', error);
+                showToast('Error', `El token es incorrecto o está vacio`, 'error')
                 resultadoDiv.textContent = 'El token es incorrecto o está vacío';
                 fila.classList.add('error-row');
             } finally {
@@ -2585,6 +2781,10 @@
                 buttonElement.innerHTML = originalHTML;
                 buttonElement.style.opacity = '1';
                 buttonElement.style.cursor = 'pointer';
+
+                botonBuscar.disabled = false;
+                botonBuscar.style.opacity = '1';
+                botonBuscar.style.cursor = 'pointer';
             }
         }
 
@@ -2597,8 +2797,16 @@
                 return;
             }
 
+            const botonBuscar = document.getElementById("botonBuscar");
+            const botonEnviar = document.getElementById("enviarPaquetesBtn");
             const downloadButton = document.querySelector('#DescargarPaquetesBtn');
+            
+            
+
             let originalHTML = '';
+            let originalHTML2 = '';
+
+
             if (downloadButton) {
                 originalHTML = downloadButton.innerHTML;
                 downloadButton.disabled = true;
@@ -2607,16 +2815,44 @@
                 downloadButton.style.cursor = 'not-allowed';
             }
 
+            if (botonBuscar) {
+                botonBuscar.disabled = true;
+                botonBuscar.style.opacity = '0.6';
+                botonBuscar.style.cursor = 'not-allowed';
+            }
+
+            if (botonEnviar) {
+                botonEnviar.disabled = true;
+                botonEnviar.style.opacity = '0.6';
+                botonEnviar.style.cursor = 'not-allowed';
+            }
+
+            let directoryHandle;
             try {
-                showToast('Procesando', `Descargando ${checkboxes.length} paquetes...`, 'success');
+                try {
+                    directoryHandle = await window.showDirectoryPicker();
+
+                    const permiso = await directoryHandle.requestPermission({ mode: 'readwrite' });
+                    if (permiso !== 'granted') {
+                        showToast('Error', 'Permiso denegado para escribir en la carpeta seleccionada.', 'error');
+                        return;
+                    }
+
+                } catch (e) {
+                    showToast('Cancelado', 'Selección de carpeta cancelada.', 'error');
+                    return;
+                }
+
+                const toast = showToast('Procesando', `Descargando ${checkboxes.length} paquetes...`, 'success', 30000, true);
+                actualizarToastProgreso(toast, 0);
 
                 const documentosSeleccionados = Array.from(checkboxes).map(cb => {
                     const fila = cb.closest('tr');
                     const idMovDoc = cb.value;
                     const nFact = fila.querySelector('td:nth-child(2)').textContent.trim();
-                    return { idMovDoc, nFact, fila };
+                    const cuv = fila.querySelector('.valor-cuv')?.textContent.trim();
+                    return { idMovDoc, nFact, fila, cuv};
                 });
-
 
                 const erroresRips = [];
                 for (const doc of documentosSeleccionados) {
@@ -2624,36 +2860,46 @@
                     if (ripsError) {
                         showToast('Error', ripsError, 'error');
                         erroresRips.push(doc.idMovDoc);
+                        
                     }
                 }
 
                 const documentosValidos = documentosSeleccionados.filter(d => !erroresRips.includes(d.idMovDoc));
                 if (documentosValidos.length === 0) {
                     showToast('Error', 'Ningún documento pasó validación RIPS', 'error');
-                    return;
-                }
-
-
-                let directoryHandle;
-                try {
-                    directoryHandle = await window.showDirectoryPicker();
-                } catch (e) {
-                    showToast('Cancelado', 'Selección de carpeta cancelada.', 'error');
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
                     return;
                 }
 
                 let paquetesExitosos = [];
                 let paquetesFallidos = [];
+                const incluirXml = document.getElementById('incluirXML').checked;
 
-                for (const doc of documentosValidos) {
-                    const downloadError = await descargarZip(doc.idMovDoc, "json", directoryHandle);
+                for (let i = 0; i < documentosValidos.length; i++) {
+                    const doc = documentosValidos[i];
+                    const downloadError = await descargarZip(doc.idMovDoc, "json", incluirXml, doc.cuv, directoryHandle);
                     if (downloadError) {
                         showToast('Error', downloadError, 'error');
                         paquetesFallidos.push(doc.nFact);
-                        continue;
+                        setTimeout(() => {
+                            toast.classList.add('fadeOut');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 1000);
+                        return;
                     }
+
                     paquetesExitosos.push(doc.nFact);
+                    const progreso = Math.round(((i + 1) / documentosValidos.length) * 100);
+                    actualizarToastProgreso(toast, progreso);
                 }
+
+                setTimeout(() => {
+                    toast.classList.add('fadeOut');
+                    setTimeout(() => toast.remove(), 300);
+                }, 1000);
 
                 if (paquetesExitosos.length === 1) {
                     showToast('Éxito', `El paquete con factura ${paquetesExitosos[0]} se ha descargado correctamente`, 'success');
@@ -2672,15 +2918,30 @@
                     downloadButton.style.opacity = '1';
                     downloadButton.style.cursor = 'pointer';
                 }
+
+                if (botonBuscar) {
+                    botonBuscar.disabled = false;
+                    botonBuscar.style.opacity = '1';
+                    botonBuscar.style.cursor = 'pointer';
+                }
+
+                if (botonEnviar) {
+                    botonEnviar.disabled = false;
+                    botonEnviar.style.opacity = '1';
+                    botonEnviar.style.cursor = 'pointer';
+                }
             }
         }
 
-
         async function DescargarPaquete(button) {
+            const botonBuscar = document.getElementById("botonBuscar");
             const tipo = "json";
+            const incluirXml = document.getElementById('incluirXML').checked;
             const row = button.closest('tr');
             const nfact = row.querySelector('td:nth-child(2)').textContent.trim();
             const id = button.getAttribute('data-id') || button.value;
+
+            const cuv = row.querySelector('.valor-cuv')?.textContent.trim();
 
             if (!nfact) {
                 showToast('Error', `No se encontró Nfact para este documento`, 'error');
@@ -2692,37 +2953,64 @@
                 return;
             }
 
-
             const originalHTML = button.innerHTML;
             button.disabled = true;
             button.innerHTML = 'Descargando...';
             button.style.opacity = '0.6';
             button.style.cursor = 'not-allowed';
 
+            botonBuscar.disabled = true;
+            botonBuscar.style.opacity = '0.6';
+            botonBuscar.style.cursor = 'not-allowed';
+
+            let directoryHandle;
             try {
-                showToast('Procesando', `Ejecutando RIPS...`, 'success');
-
-                const errorRips = await ejecutarRips(nfact);
-                if (errorRips) {
-                    showToast('Error', `Error al descargar ${nfact}, no hay JSON`, 'error');
-                    return;
-                }
-
-                let directoryHandle;
                 try {
                     directoryHandle = await window.showDirectoryPicker();
+
+                    const permiso = await directoryHandle.requestPermission({ mode: 'readwrite' });
+                    if (permiso !== 'granted') {
+                        showToast('Error', 'Permiso denegado para escribir en la carpeta seleccionada.', 'error');
+                        return;
+                    }
+
                 } catch (e) {
                     showToast('Cancelado', 'Selección de carpeta cancelada.', 'error');
                     return;
                 }
 
-                showToast('Procesando', `Descargando paquete...`, 'success');
+                const toast = showToast('Procesando', `Descargando paquete...`, 'success', 30000, true);
+                actualizarToastProgreso(toast, 0);
 
-                const downloadError = await descargarZip(id, tipo, directoryHandle);
-                if (downloadError) {
-                    showToast('Error', downloadError, 'error');
+                const errorRips = await ejecutarRips(nfact);
+                if (errorRips) {
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
+                    showToast('Error', `Error al descargar ${nfact}, no hay JSON`, 'error');
+                    
                     return;
                 }
+
+                actualizarToastProgreso(toast, 50);
+
+                const downloadError = await descargarZip(id, tipo, incluirXml, cuv, directoryHandle);
+                if (downloadError) {
+                    setTimeout(() => {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 1000);
+                    showToast('Error', downloadError, 'error');
+
+                    return;
+                }
+                
+                actualizarToastProgreso(toast, 100);
+                setTimeout(() => {
+                    toast.classList.add('fadeOut');
+                    setTimeout(() => toast.remove(), 300);
+                }, 1000);
 
                 showToast('Éxito', `Factura ${nfact} descargada correctamente`, 'success');
 
@@ -2731,8 +3019,13 @@
                 button.innerHTML = originalHTML;
                 button.style.opacity = '1';
                 button.style.cursor = 'pointer';
+
+                botonBuscar.disabled = false;
+                botonBuscar.style.opacity = '1';
+                botonBuscar.style.cursor = 'pointer';
             }
         }
+
 
 
         async function ejecutarRips(nfact) {
@@ -2750,9 +3043,9 @@
             }
         }
 
-        async function descargarZip(id, tipo, directoryHandle) {
+        async function descargarZip(id, tipo, xml, cuv, directoryHandle) {
             const host = window.location.hostname;
-            const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}`;
+            const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}?cuv=${encodeURIComponent(cuv || '')}`; 
 
             try {
                 const response = await fetch(url);
@@ -2803,26 +3096,48 @@
             }
         });
 
-        function showToast(title, message, type = 'success', duration = 6000) {
+        function showToast(title, message, type = 'success', duration = 6000, showProgress = false) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
+            
             toast.innerHTML = `
-                <div class="toast-content">                  
+                <div class="toast-content">
                     <strong>${title}</strong>
                     <button class="close-toast" onclick="this.parentElement.parentElement.remove()">✖</button>
-                    <p>${message}</p>                 
+                    <p>${message}</p>
+                    ${showProgress ? `
+                    <div class="toast-progress-container">
+                        <div class="toast-progress-bar" style="width: 0%;"></div>
+                    </div>` : ''}
                 </div>
             `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.classList.add('fadeOut');
-                    setTimeout(() => container.removeChild(toast), 300);
-                }
-            }, duration);
-        }    
 
+            container.appendChild(toast);
+
+            if (!showProgress) {
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.add('fadeOut');
+                        setTimeout(() => {
+                            container.removeChild(toast);
+                        }, 300);
+                    }
+                }, duration);
+            }
+
+
+            return toast;
+        }
+
+        function actualizarToastProgreso(toast, porcentaje) {
+            const progressBar = toast.querySelector('.toast-progress-bar');
+            if (progressBar) {
+                progressBar.style.width = `${porcentaje}%`;
+            }
+        }
+
+                
         function toggleExpand(button) {
             const content = button.nextElementSibling;
             const isExpanded = content.classList.contains('expanded');
