@@ -393,5 +393,45 @@ public class ValidadorController {
     public ResponseEntity<?> handleOptions() {
     return ResponseEntity.ok().build();
     }
+
+
+
+    
+    @PostMapping("/guardarrespuesta")
+    public ResponseEntity<?> guardarRespuestaApi(@RequestBody Map<String, Object> payload){
+        
+
+        String servidor;
+
+        try{
+            servidor = getServerFromRegistry();
+        }
+        catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al leer el servidor de registro: " + e.getMessage());
+        }
+
+        String nFact = (String) payload.get("nFact");
+        String mensajeRespuesta = (String) payload.get("mensajeRespuesta");
+
+        String connectionUrl = String.format("jdbc:sqlserver://%s;databaseName=IPSoft100_ST;user=ConexionApi;password=ApiConexion.77;encrypt=true;trustServerCertificate=true;sslProtocol=TLSv1;", servidor);
+
+        String sql = "INSERT INTO RIPS_RespuestaAPI (Nfact, MensajeRespuesta) VALUES (?, ?)";
+
+        try(
+            Connection conn = DriverManager.getConnection(connectionUrl);
+            PreparedStatement statement = conn.prepareStatement(sql)){
+                statement.setString(1, nFact);
+                statement.setString(2, mensajeRespuesta);
+
+                statement.executeUpdate();
+
+                return ResponseEntity.ok("Respuesta guardada correctamente");
+
+            }catch(SQLException e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al guardar respuesta: " + e.getMessage());
+            }
+    }
+
     
 }

@@ -1036,7 +1036,6 @@
               for (let i = 0; i < seleccionados.length; i++) {
                   const cb = seleccionados[i];
                   const row = cb.closest('tr');
-                  const cuv = row.querySelector('.valor-cuv')?.textContent.trim();
                   const nfact = row.querySelector('td:nth-child(2)').textContent.trim();
                   const id = cb.value;
 
@@ -1053,7 +1052,7 @@
                       continue;
                   }
 
-                  const downloadResult = await descargarZip(id, tipo, incluirXml, cuv, directoryHandle);
+                  const downloadResult = await descargarZip(id, tipo, incluirXml, directoryHandle);
                   if (downloadResult) {
                       showToast('Error', downloadResult, 'error');
                       errores.push({ id, tipo, error: downloadResult });
@@ -1176,9 +1175,10 @@
           }
       }
 
-      async function descargarZip(id, tipo, xml, cuv, directoryHandle) {
+      async function descargarZip(id, tipo, xml, directoryHandle) {
           const host = window.location.hostname;
-          const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}?cuv=${encodeURIComponent(cuv || '')}`; 
+          const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}`;
+
           try {
               const response = await fetch(url);
 
@@ -1200,14 +1200,11 @@
               await writable.write(blob);
               await writable.close();
 
-              return false; 
+              return false;
           } catch (error) {
               return `Error de red para ID ${id}: ${error.message}`;
           }
       }
-
-
-      
 
       async function cargarTerceros() {
           try {

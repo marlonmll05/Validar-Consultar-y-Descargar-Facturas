@@ -2319,16 +2319,19 @@
                                     delete logsButton.dataset.filename;
                                 }
 
-                                const txtContent = JSON.stringify(responseData, null, 2); 
-                                const blob = new Blob([txtContent], { type: 'text/plain' });
-                                const downloadUrl = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = downloadUrl;
-                                a.download = `ResultadosMSPS_${nFact}_A_CUV.txt`;
-                                document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                                URL.revokeObjectURL(downloadUrl);
+                                const txtContent = JSON.stringify(responseData, null, 2);
+                                
+                                await fetch(`https://${host}:9876/api/validador/guardarrespuesta`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        nFact: nFact,
+                                        mensajeRespuesta: txtContent
+                                    })
+                                });
+
 
                                 const idEstadoValidacion = 3;
                                 const exitoso = await agregarCUVCompleto(nFact, cuv, idEstadoValidacion);
@@ -2625,17 +2628,19 @@
                             delete logsButton.dataset.filename;
                         }
 
-                        const txtContent = JSON.stringify(responseData, null, 2); 
-                        const blob = new Blob([txtContent], { type: 'text/plain' });
-                        const downloadUrl = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = downloadUrl;
-                        a.download = `ResultadosMSPS_${nFact}_A_CUV.txt`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        URL.revokeObjectURL(downloadUrl);
+                        const txtContent = JSON.stringify(responseData, null, 2);
                         
+                        await fetch(`https://${host}:9876/api/validador/guardarrespuesta`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                nFact: nFact,
+                                mensajeRespuesta: txtContent
+                            })
+                        });
+
                         const idEstadoValidacion = 3;
                         const exitoso = await agregarCUVCompleto(nFact, cuv, idEstadoValidacion);
                         if (exitoso) {
@@ -2850,8 +2855,7 @@
                     const fila = cb.closest('tr');
                     const idMovDoc = cb.value;
                     const nFact = fila.querySelector('td:nth-child(2)').textContent.trim();
-                    const cuv = fila.querySelector('.valor-cuv')?.textContent.trim();
-                    return { idMovDoc, nFact, fila, cuv};
+                    return { idMovDoc, nFact, fila};
                 });
 
                 const erroresRips = [];
@@ -2880,7 +2884,7 @@
 
                 for (let i = 0; i < documentosValidos.length; i++) {
                     const doc = documentosValidos[i];
-                    const downloadError = await descargarZip(doc.idMovDoc, "json", incluirXml, doc.cuv, directoryHandle);
+                    const downloadError = await descargarZip(doc.idMovDoc, "json", incluirXml, directoryHandle);
                     if (downloadError) {
                         showToast('Error', downloadError, 'error');
                         paquetesFallidos.push(doc.nFact);
@@ -2941,7 +2945,7 @@
             const nfact = row.querySelector('td:nth-child(2)').textContent.trim();
             const id = button.getAttribute('data-id') || button.value;
 
-            const cuv = row.querySelector('.valor-cuv')?.textContent.trim();
+           
 
             if (!nfact) {
                 showToast('Error', `No se encontró Nfact para este documento`, 'error');
@@ -2995,7 +2999,7 @@
 
                 actualizarToastProgreso(toast, 50);
 
-                const downloadError = await descargarZip(id, tipo, incluirXml, cuv, directoryHandle);
+                const downloadError = await descargarZip(id, tipo, incluirXml, directoryHandle);
                 if (downloadError) {
                     setTimeout(() => {
                         toast.classList.add('fadeOut');
@@ -3026,8 +3030,6 @@
             }
         }
 
-
-
         async function ejecutarRips(nfact) {
             try {
                 const response = await fetch(`/api/sql/ejecutarRips?Nfact=${encodeURIComponent(nfact)}`);
@@ -3043,9 +3045,9 @@
             }
         }
 
-        async function descargarZip(id, tipo, xml, cuv, directoryHandle) {
+        async function descargarZip(id, tipo, xml, directoryHandle) {
             const host = window.location.hostname;
-            const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}?cuv=${encodeURIComponent(cuv || '')}`; 
+            const url = `https://${host}:9876/certificados/generarzip/${id}/${tipo}/${xml}`;
 
             try {
                 const response = await fetch(url);
