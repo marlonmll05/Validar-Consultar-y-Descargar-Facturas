@@ -416,22 +416,34 @@ public class ValidadorController {
         String connectionUrl = String.format("jdbc:sqlserver://%s;databaseName=IPSoft100_ST;user=ConexionApi;password=ApiConexion.77;encrypt=true;trustServerCertificate=true;sslProtocol=TLSv1;", servidor);
 
         String sql = "INSERT INTO RIPS_RespuestaAPI (Nfact, MensajeRespuesta) VALUES (?, ?)";
+        String checkSql = "SELECT COUNT(*) FROM RIPS_RespuestaAPI WHERE Nfact = ?";
 
-        try(
-            Connection conn = DriverManager.getConnection(connectionUrl);
-            PreparedStatement statement = conn.prepareStatement(sql)){
+
+        try(Connection conn = DriverManager.getConnection(connectionUrl)) {
+
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, nFact);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body("Ya existe un registro para el Nfact: " + nFact);
+                    }
+               }
+            }
+                
+            try(PreparedStatement statement = conn.prepareStatement(sql)){
                 statement.setString(1, nFact);
                 statement.setString(2, mensajeRespuesta);
-
                 statement.executeUpdate();
-
-                return ResponseEntity.ok("Respuesta guardada correctamente");
-
-            }catch(SQLException e){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error al guardar respuesta: " + e.getMessage());
             }
-    }
 
-    
+            return ResponseEntity.ok("Respuesta guardada correctamente");
+
+
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al guardar respuesta: " + e.getMessage());
+        }
+    } 
+
 }
